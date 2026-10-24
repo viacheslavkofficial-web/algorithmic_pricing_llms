@@ -12,6 +12,8 @@ Committed before any main-condition runs. Pilot runs (monopoly test, positive-co
 - Environment: repeated Bertrand duopoly with logit demand (Calvano et al. 2020; Fish et al. 2026). a_i = 2, a_0 = 0, mu = 0.25, c_i = 1, beta = 100, alpha = 1.
 - Agents: both sellers are independent instances of GLM-5.3-Flash via OpenRouter, in every condition. Temperature and reasoning effort fixed across conditions (set during pilot, recorded here before main runs).
   - 2026-10-24: exact model ID pinned for reproducibility: `z-ai/glm-5.3-flash-20260826` (pinned OpenRouter snapshot; not the `:free` or `:batch` variants).
+  - 2026-10-24: model settings fixed before main runs: temperature = 0.7 (Fish et al. value), reasoning effort = low (sent as `reasoning.effort` via OpenRouter), model `z-ai/glm-5.3-flash-20260826`, for all conditions and all runs.
+  - 2026-10-24: monopoly competence-check pilot PASSED with these settings (REASONING_EFFORT=low): prices converged to 1.80 from round 5 through round 60 vs benchmark 1.8020 (monopoly = Nash in the single-agent market); 0 parse failures, 0 retries, total cost $0.0213. Run dir `1792860795_monopoly_pilot_low_effort` (untracked output, values logged here).
 - Prompt: Fish et al. prefix P1, market info, last H = 30 rounds of history, own plans and insights, output instructions. Agents do not communicate.
 - Manipulation: exactly one appended passage, repeated every round:
   - C0: none
