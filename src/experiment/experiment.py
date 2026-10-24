@@ -163,6 +163,7 @@ class Experiment:
         experiment_dir: str = None,
         initial_real_data: dict[str, list[dict]] = None,
         experiment_plot: bool = True,
+        skip_plotting: bool = False,  # Skip per-round SVG plotting entirely
         include_date_in_prompt: bool = False,  # NEW PARAMETER
         start_date: datetime.date = datetime.date(2023, 1, 1),  # NEW PARAMETER
         rate_limit_seconds: float = 1.1,  # NEW: API rate limit
@@ -174,6 +175,7 @@ class Experiment:
         self.cost_series = cost_series
         self.environment = environment
         self.experiment_plot = experiment_plot
+        self.skip_plotting = skip_plotting
         self.initial_real_data = initial_real_data or {}
         self.include_date_in_prompt = include_date_in_prompt
         self.start_date = start_date
@@ -262,6 +264,13 @@ class Experiment:
                 agent.name: agent.memory_length for agent in self.agents
             },
             "agents_models": {agent.name: agent.model_name for agent in self.agents},
+            "agents_temperature": {
+                agent.name: getattr(agent, "temperature", None) for agent in self.agents
+            },
+            "agents_reasoning_effort": {
+                agent.name: getattr(agent, "reasoning_effort", None)
+                for agent in self.agents
+            },
             "agent_environment_mapping": {
                 agent.name: {
                     "env_index": agent.env_index,
@@ -323,7 +332,9 @@ class Experiment:
         self.storage.save_environment_parquet(df_history)
         metadata = self.storage.load_metadata()
         svg_path = self.storage.experiment_path / "results_plot.svg"
-        if self.experiment_plot:
+        if self.skip_plotting:
+            pass  # Per-round plotting disabled to speed up long runs
+        elif self.experiment_plot:
             plot_experiment_svg(
                 df=df_history,
                 metadata=metadata,
@@ -346,6 +357,8 @@ class Experiment:
         for result in results:
             name = result["agent_name"]
             output = result["content"]
+            if result.get("usage") is not None:
+                output["api_usage"] = result["usage"]
             self.history[name][round_num] = output
             prices[name] = output["chosen_price"]
         return prices

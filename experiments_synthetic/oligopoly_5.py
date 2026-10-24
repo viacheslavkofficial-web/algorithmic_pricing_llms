@@ -38,8 +38,8 @@ Usage:
     python experiments_synthetic/oligopoly_5.py
 
 Requirements:
-    - MISTRAL_API_KEY environment variable set
-    - MODEL_NAME environment variable (default: mistral-large-2411)
+    - OPENROUTER_API_KEY environment variable set
+    - MODEL_NAME environment variable (default: z-ai/glm-5.3-flash-20260826)
     - Sufficient API credits for ~3000 API calls per full experiment run
 
 Output:
@@ -72,7 +72,7 @@ from src.prompts.prompts_models import create_pricing_response_model
 current_file_path = Path(__file__).resolve()
 
 load_dotenv()
-API_KEY = os.getenv("MISTRAL_API_KEY")
+API_KEY = os.getenv("OPENROUTER_API_KEY")
 MODEL_NAME = os.getenv("MODEL_NAME")
 
 # Experimental Configuration Parameters

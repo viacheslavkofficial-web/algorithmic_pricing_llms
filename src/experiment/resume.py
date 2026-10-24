@@ -104,7 +104,7 @@ async def resume_experiment(experiment_dir: str):
 
     # Load environment variables
     load_dotenv()
-    API_KEY = os.getenv("MISTRAL_API_KEY")
+    API_KEY = os.getenv("OPENROUTER_API_KEY")
     MODEL_NAME = next(iter(agents_models.values()))
 
     # Recreate agents

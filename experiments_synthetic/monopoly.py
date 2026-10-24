@@ -18,7 +18,7 @@ from pathlib import Path
 current_file_path = Path(__file__).resolve()
 
 load_dotenv()
-API_KEY = os.getenv("MISTRAL_API_KEY")
+API_KEY = os.getenv("OPENROUTER_API_KEY")
 MODEL_NAME = os.getenv("MODEL_NAME")
 
 MEMORY_LENGTH = 100
