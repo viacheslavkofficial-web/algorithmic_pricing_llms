@@ -38,6 +38,7 @@ Committed before any main-condition runs. Pilot runs (monopoly test, positive-co
 ## Exclusions
 - A run with more than 5% unparseable outputs or API failures is discarded and re-run with a new seed; all discarded runs are logged.
   - 2026-10-24: C0 run 3 (run dir `1792862105_duopoly_C0_run3`) discarded: Firm B failed a move after exhausting retries (model repeatedly omitted the required `chosen_price` field; 4 agent attempts x 3 wrapper attempts), run aborted at ~round 15 with no usable outcome window. Re-run as a fresh C0 run 3.
+  - 2026-10-24: during main-run batch 2, OpenRouter returned transient 403 "Access denied by security policy" to four concurrent runs starting ~00:24 local (19-37 blocked calls each across retry layers); a single test call succeeded ~00:31 and no later run was affected. The following runs failed mid-run (rounds 105-146), are discarded per the exclusion rule, and re-run fresh with the same condition and run id: `1792865435_duopoly_C1_run3`, `1792865435_duopoly_C2_run3`, `1792865435_duopoly_C3_run2`, `1792865435_duopoly_C1_run4`.
 
 ## Exploratory (only if time permits, reported as exploratory)
 - 2x2 extension crossing objective similarity (same vs different underlying model, e.g. GLM-5.3-Flash vs a second model) with the believed-identity label.
