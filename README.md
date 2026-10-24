@@ -4,6 +4,22 @@
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
 [![uv](https://img.shields.io/badge/Managed%20with-uv-purple)](https://github.com/astral-sh/uv)
 
+> ## Fork status (AI Collusion Research Sprint, Oct 23-25, 2026)
+>
+> This repository is a **fork of [luciasauer/algorithmic_pricing_llms](https://github.com/luciasauer/algorithmic_pricing_llms)** (BSE master project by Peist, Romero and Sauer, replicating Fish et al., "Algorithmic Collusion by Large Language Models").
+>
+> **All code before commit `bafbb83` is pre-existing work of the original authors** and is used here unchanged except where explicitly listed below. Everything below was added during the Apart Research AI Collusion Research Sprint (Oct 23-25, 2026) for the study "Does believed rival identity affect tacit collusion among LLM pricing agents?" (see `PREREGISTRATION.md` and `docs/SPRINT_BRIEF.md`):
+>
+> - `docs/SPRINT_BRIEF.md` — sprint context file for coding agents.
+> - `PREREGISTRATION.md` — dated note pinning the exact model ID `z-ai/glm-5.3-flash-20260826`.
+> - `src/agents/LLM_agent.py` — LLM backend switched from Mistral to OpenRouter (OpenAI-compatible `AsyncOpenAI` client); model/temperature/reasoning-effort configurable via env vars; robust JSON fallback parsing; per-call usage accounting (latency, tokens, cost) stored per round in `results.json`.
+> - `src/experiment/experiment.py` — new `skip_plotting` option to disable per-round SVG rendering (speed); per-call `api_usage` stored in round data; model/temperature/reasoning effort recorded in `metadata.json`. No game logic changed.
+> - `experiments_synthetic/*.py`, `src/experiment/resume.py` — read `OPENROUTER_API_KEY` instead of `MISTRAL_API_KEY`.
+> - `experiments_synthetic/monopoly.py` — made configurable via env vars/CLI for the monopoly competence-check pilot (1 run, alpha = 1, 60 rounds, memory 30, plotting off).
+> - `CLAUDE.md` / `AGENTS.md` — rewritten for the sprint (correct logit demand description, OpenRouter setup, hard constraints); the pre-sprint files incorrectly described the demand as linear.
+> - `README.md` — this fork-status section.
+> - `.env.example` — OpenRouter variables (`OPENROUTER_API_KEY`, `MODEL_NAME`, `TEMPERATURE`, `REASONING_EFFORT`).
+
 ## Master's Thesis: Testing Folk Theorem Predictions in AI-Mediated Markets
 
 **Authors**: Julian Romero, Lucia Sauer, Moritz Peist  
