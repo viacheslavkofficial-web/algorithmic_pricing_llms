@@ -45,7 +45,7 @@ class RateLimiter:
 class RateLimitedAgentWrapper:
     """Wrapper for agents that enforces rate limiting on their act method."""
 
-    def __init__(self, agent, rate_limiter: RateLimiter, max_retries: int = 20):
+    def __init__(self, agent, rate_limiter: RateLimiter, max_retries: int = 2):
         self.agent = agent
         self.rate_limiter = rate_limiter
         self.max_retries = max_retries
@@ -92,7 +92,7 @@ async def execute_agents_rate_limited(
     agents: List,
     prompts: Dict[str, str],
     rate_limit_seconds: float = 1.1,
-    max_retries: int = 20,
+    max_retries: int = 2,
     logger=None,
 ) -> List[Dict[str, Any]]:
     """
@@ -167,7 +167,7 @@ class Experiment:
         include_date_in_prompt: bool = False,  # NEW PARAMETER
         start_date: datetime.date = datetime.date(2023, 1, 1),  # NEW PARAMETER
         rate_limit_seconds: float = 1.1,  # NEW: API rate limit
-        max_retries: int = 20,  # NEW: Max retries per agent
+        max_retries: int = 2,  # NEW: Max retries per agent per round
     ):
         self.name = name
         self.agents = agents

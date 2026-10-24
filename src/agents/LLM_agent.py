@@ -19,7 +19,7 @@ from pydantic import BaseModel, ValidationError, create_model
 
 from src.agents.base_agent import Agent
 
-MAX_RETRIES = 15
+MAX_RETRIES = 4
 RETRY_DELAY_SECONDS = 1
 
 OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1"
@@ -251,6 +251,10 @@ class LLMAgent(Agent):
                 }
 
             except (ValidationError, ValueError) as e:
+                self.logger.warning(
+                    f"⚠️ Attempt {attempt} failed for agent {self.name} "
+                    f"({type(e).__name__}): {str(e)[:300]}"
+                )
                 if attempt == MAX_RETRIES:
                     self.logger.error(
                         f"❌ Validation failed after {MAX_RETRIES} attempts for agent {self.name}: {str(e)}"
@@ -269,12 +273,20 @@ class LLMAgent(Agent):
                         f"relying on robust JSON parsing."
                     )
                     continue
+                self.logger.warning(
+                    f"⚠️ Attempt {attempt} failed for agent {self.name} "
+                    f"({type(e).__name__}): {str(e)[:300]}"
+                )
                 if attempt == MAX_RETRIES:
                     self.logger.error(
                         f"❌ Error after {MAX_RETRIES} attempts for agent {self.name}: {str(e)}"
                     )
                     raise e
             except Exception as e:
+                self.logger.warning(
+                    f"⚠️ Attempt {attempt} failed for agent {self.name} "
+                    f"({type(e).__name__}): {str(e)[:300]}"
+                )
                 if attempt == MAX_RETRIES:
                     self.logger.error(
                         f"❌ Error after {MAX_RETRIES} attempts for agent {self.name}: {str(e)}"
