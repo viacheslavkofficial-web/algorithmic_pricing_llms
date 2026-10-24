@@ -11,6 +11,7 @@ Committed before any main-condition runs. Pilot runs (monopoly test, positive-co
 ## Design
 - Environment: repeated Bertrand duopoly with logit demand (Calvano et al. 2020; Fish et al. 2026). a_i = 2, a_0 = 0, mu = 0.25, c_i = 1, beta = 100, alpha = 1.
 - Agents: both sellers are independent instances of GLM-5.3-Flash via OpenRouter, in every condition. Temperature and reasoning effort fixed across conditions (set during pilot, recorded here before main runs).
+  - 2026-10-24: exact model ID pinned for reproducibility: `z-ai/glm-5.3-flash-20260826` (pinned OpenRouter snapshot; not the `:free` or `:batch` variants).
 - Prompt: Fish et al. prefix P1, market info, last H = 30 rounds of history, own plans and insights, output instructions. Agents do not communicate.
 - Manipulation: exactly one appended passage, repeated every round:
   - C0: none
