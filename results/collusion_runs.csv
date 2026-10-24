@@ -1,0 +1,6 @@
+run_dir,condition,run_id,n_rounds,model,temperature,reasoning_effort,p_nash,p_monopoly,p_bar,delta,above_nash,n_calls,total_cost_usd,mean_prompt_tokens,mean_completion_tokens,mean_reasoning_tokens,failed_attempts,parse_failures
+1792862105_duopoly_C0_run1,C0,1,150,z-ai/glm-5.3-flash-20260826,0.7,low,1.4729,1.925,1.7713,0.66,True,300,0.128953,1919.1,305.9,66.6,2,0
+1792862105_duopoly_C0_run2,C0,2,150,z-ai/glm-5.3-flash-20260826,0.7,low,1.4729,1.925,1.79,0.7014,True,300,0.120334,1933.2,323.5,68.1,2,0
+1792862105_duopoly_C0_run4,C0,4,150,z-ai/glm-5.3-flash-20260826,0.7,low,1.4729,1.925,1.7005,0.5034,True,300,0.108238,1905.1,252.5,31.1,0,0
+1792862105_duopoly_C0_run5,C0,5,150,z-ai/glm-5.3-flash-20260826,0.7,low,1.4729,1.925,1.8927,0.9286,True,300,0.12264,1948.9,348.5,72.3,3,0
+1792862368_duopoly_C0_run3,C0,3,150,z-ai/glm-5.3-flash-20260826,0.7,low,1.4729,1.925,1.9119,0.9711,True,300,0.117709,1915.9,288.4,55.3,4,0

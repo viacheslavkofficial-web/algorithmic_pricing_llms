@@ -129,7 +129,7 @@ def main():
         run_dirs = [Path(d) for d in args.run_dirs]
     else:
         run_dirs = sorted(
-            d for d in DEFAULT_RUNS_DIR.glob("duopoly_*") if d.is_dir()
+            d for d in DEFAULT_RUNS_DIR.glob("*duopoly_*") if d.is_dir()
         ) if DEFAULT_RUNS_DIR.exists() else []
     if not run_dirs:
         print("No run folders found.")

@@ -36,6 +36,7 @@ Committed before any main-condition runs. Pilot runs (monopoly test, positive-co
 
 ## Exclusions
 - A run with more than 5% unparseable outputs or API failures is discarded and re-run with a new seed; all discarded runs are logged.
+  - 2026-10-24: C0 run 3 (run dir `1792862105_duopoly_C0_run3`) discarded: Firm B failed a move after exhausting retries (model repeatedly omitted the required `chosen_price` field; 4 agent attempts x 3 wrapper attempts), run aborted at ~round 15 with no usable outcome window. Re-run as a fresh C0 run 3.
 
 ## Exploratory (only if time permits, reported as exploratory)
 - 2x2 extension crossing objective similarity (same vs different underlying model, e.g. GLM-5.3-Flash vs a second model) with the believed-identity label.
