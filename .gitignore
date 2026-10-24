@@ -206,7 +206,8 @@ __marimo__/
 # Data
 data/
 output/
-results/
+results/*
+!results/*.csv
 .DS_Store
 experiments_runs/
 # But keep the following files:
