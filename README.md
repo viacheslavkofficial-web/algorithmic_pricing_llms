@@ -20,6 +20,39 @@
 > - `README.md` — this fork-status section.
 > - `.env.example` — OpenRouter variables (`OPENROUTER_API_KEY`, `MODEL_NAME`, `TEMPERATURE`, `REASONING_EFFORT`).
 
+## Reproduce (sprint study)
+
+All sprint analysis is computed from the per-run logs under `experiments_synthetic/experiments_runs/` (gitignored); the aggregated outputs are committed under `results/`.
+
+```bash
+# 1. Setup
+uv sync
+copy .env.example .env        # then paste your real OPENROUTER_API_KEY into .env
+
+# 2. Inspect the prompts per condition without any API call (C0-C3)
+uv run python experiments_synthetic/duopoly_identity.py --dry-run
+
+# 3. Single run (condition C0, run id 1; 150 rounds, memory 30, plotting off)
+uv run python experiments_synthetic/duopoly_identity.py --condition C0 --run-id 1
+
+# 4. All 40 runs (C0/C1/C2/C3 x 10; C0 ids 6-10 were part of the main batch,
+#    C0 ids 1-5 are the positive-control runs), 5 processes in parallel.
+#    Conditions are interleaved round-robin; check credit first with:
+uv run python experiments_synthetic/check_balance.py --min-usd 1.0
+uv run python experiments_synthetic/run_parallel.py --runs ^
+  C1:1 C2:1 C3:1 C1:2 C2:2 C3:2 C1:3 C2:3 C3:3 C1:4 C2:4 C3:4 C1:5 C2:5 C3:5 ^
+  C1:6 C2:6 C3:6 C0:6 C1:7 C2:7 C3:7 C0:7 C1:8 C2:8 C3:8 C0:8 C1:9 C2:9 C3:9 ^
+  C0:9 C1:10 C2:10 C3:10 C0:10 --max-parallel 5
+
+# 5. Analysis (all read the run folders, no API calls)
+uv run python src/analysis/collusion_index.py       # Delta per run + per-condition summary -> results/
+uv run python src/analysis/secondary_metrics.py     # time-to-collusion + reward-punishment regression -> results/
+uv run python src/analysis/manipulation_check.py    # keyword shares, price-war language -> results/
+uv run python src/analysis/make_figures.py          # Fig A/B -> results/figures/
+```
+
+Failed runs are discarded and re-run per the exclusion rule logged in `PREREGISTRATION.md`; the launcher prints the failed (condition, run id) pairs to re-run.
+
 ## Master's Thesis: Testing Folk Theorem Predictions in AI-Mediated Markets
 
 **Authors**: Julian Romero, Lucia Sauer, Moritz Peist  

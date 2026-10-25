@@ -208,6 +208,8 @@ data/
 output/
 results/*
 !results/*.csv
+!results/*.txt
+!results/figures/
 .DS_Store
 experiments_runs/
 # But keep the following files:
