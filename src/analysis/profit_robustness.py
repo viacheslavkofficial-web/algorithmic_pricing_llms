@@ -41,6 +41,7 @@ FIG_DIR = RESULTS_DIR / "figures"
 START_ROUND, END_ROUND = 101, 150
 CONDITIONS = ["C0", "C1", "C2", "C3"]
 COLORS = {"C0": "#555555", "C1": "#1f77b4", "C2": "#d62728", "C3": "#2ca02c"}
+MARKERS = {"C0": "o", "C1": "s", "C2": "D", "C3": "^"}
 
 
 def load_run(run_dir: Path):
@@ -214,8 +215,9 @@ def main():
         ax.scatter(
             sub["delta_price"],
             sub["pi_bar_realised"],
-            s=26,
+            s=30,
             color=COLORS[condition],
+            marker=MARKERS[condition],
             alpha=0.75,
             edgecolors="none",
             label=condition,

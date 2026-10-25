@@ -48,6 +48,7 @@ uv run python experiments_synthetic/run_parallel.py --runs ^
 uv run python src/analysis/collusion_index.py       # Delta per run + per-condition summary -> results/
 uv run python src/analysis/secondary_metrics.py     # time-to-collusion + reward-punishment regression -> results/
 uv run python src/analysis/manipulation_check.py    # keyword shares, price-war language -> results/
+uv run python src/analysis/profit_robustness.py     # exploratory profit-based robustness -> results/
 uv run python src/analysis/make_figures.py          # Fig A/B -> results/figures/
 ```
 

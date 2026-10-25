@@ -53,6 +53,14 @@ IDENTITY_PATTERNS = [
     "ai model",
     "algorithm",
 ]
+# EXPLORATORY variant (declared before running): drops the three generic
+# terms that can refer to the agent's own pricing process rather than the
+# rival's identity. Reported next to the pre-registered list, never instead
+# of it.
+GENERIC_PATTERNS = {"ai agent", "ai model", "algorithm"}
+IDENTITY_PATTERNS_SPECIFIC = [
+    p for p in IDENTITY_PATTERNS if p not in GENERIC_PATTERNS
+]
 PRICE_WAR_PATTERNS = ["price war", "pricing war"]
 
 TEXT_FIELDS = ["observations", "plans", "insights"]
@@ -72,26 +80,27 @@ def split_sentences(text: str) -> list[str]:
 def main():
     rows = []
     examples = {c: [] for c in ["C1", "C2", "C3"]}
+    examples_specific = {c: [] for c in ["C0", "C1", "C2", "C3"]}
     war_sentences = {c: [] for c in ["C0", "C1", "C2", "C3"]}
 
     for run_dir in sorted(RUNS_DIR.glob("*duopoly_*")):
         with open(run_dir / "results.json") as f:
             results = json.load(f)
-        condition = results.get("_condition")  # not stored; from metadata
         with open(run_dir / "metadata.json") as f:
             condition = json.load(f)["condition"]
 
         for agent, rounds in results.items():
             for round_str, data in rounds.items():
                 round_num = int(round_str)
-                if "api_usage" in data and data.get("observations") is None:
-                    continue
                 text = " ".join(
                     str(data.get(field, "")) for field in TEXT_FIELDS
                 )
                 lowered = text.lower()
                 matched_pattern = next(
                     (p for p in IDENTITY_PATTERNS if p in lowered), None
+                )
+                matched_pattern_specific = next(
+                    (p for p in IDENTITY_PATTERNS_SPECIFIC if p in lowered), None
                 )
                 rows.append(
                     {
@@ -101,6 +110,9 @@ def main():
                         "round": round_num,
                         "identity_mention": matched_pattern is not None,
                         "matched_pattern": matched_pattern,
+                        "identity_mention_specific": matched_pattern_specific
+                        is not None,
+                        "matched_pattern_specific": matched_pattern_specific,
                     }
                 )
                 if condition in examples and matched_pattern is not None:
@@ -113,6 +125,20 @@ def main():
                                         "round": round_num,
                                         "agent": agent,
                                         "pattern": matched_pattern,
+                                        "sentence": sentence,
+                                    }
+                                )
+                            break
+                if matched_pattern_specific is not None:
+                    for sentence in split_sentences(text):
+                        if matched_pattern_specific in sentence.lower():
+                            if len(examples_specific[condition]) < 30:
+                                examples_specific[condition].append(
+                                    {
+                                        "run": run_dir.name,
+                                        "round": round_num,
+                                        "agent": agent,
+                                        "pattern": matched_pattern_specific,
                                         "sentence": sentence,
                                     }
                                 )
@@ -134,31 +160,34 @@ def main():
         bins=[0, 10, 100, 150],
         labels=["early (1-10)", "middle (11-100)", "late (101-150)"],
     )
-    total = df.groupby("condition", observed=True).agg(
-        n_agent_rounds=("identity_mention", "size"),
-        n_mentions=("identity_mention", "sum"),
-    )
-    total["share_overall"] = total["n_mentions"] / total["n_agent_rounds"]
 
-    windows = {}
-    for label, mask in [
-        ("early (1-10)", df["round"].isin(EARLY_ROUNDS)),
-        ("late (101-150)", df["round"].isin(LATE_ROUNDS)),
-    ]:
-        sub = df[mask]
-        windows[label] = (
-            sub.groupby("condition")
-            .agg(n_agent_rounds=("identity_mention", "size"),
-                 n_mentions=("identity_mention", "sum"))
-            .assign(**{f"share_{label.split()[0]}": lambda g: g["n_mentions"] / g["n_agent_rounds"]})
+    def condition_table(flag: str) -> pd.DataFrame:
+        total = df.groupby("condition", observed=True).agg(
+            n_agent_rounds=(flag, "size"),
+            n_mentions=(flag, "sum"),
         )
+        total["share_overall"] = total["n_mentions"] / total["n_agent_rounds"]
+        out = total[["n_agent_rounds", "share_overall"]].copy()
+        for label, mask in [
+            ("early", df["round"].isin(EARLY_ROUNDS)),
+            ("late", df["round"].isin(LATE_ROUNDS)),
+        ]:
+            sub = df[mask]
+            g = sub.groupby("condition", observed=True).agg(
+                n_mentions=(flag, "sum"), n_agent_rounds=(flag, "size")
+            )
+            out[f"share_{label}"] = g["n_mentions"] / g["n_agent_rounds"]
+        return out
 
-    print("=== Rival-identity mentions (share of agent-rounds) ===")
-    summary = total[["n_agent_rounds", "share_overall"]].copy()
-    for label, w in windows.items():
-        key = f"share_{label.split()[0]}"
-        summary[key] = w[key]
+    print("=== Rival-identity mentions, pre-registered keyword list "
+          "(share of agent-rounds) ===")
+    summary = condition_table("identity_mention")
     print(summary.to_string())
+
+    print("\n=== EXPLORATORY variant: identity-specific list (generic terms "
+          "'ai agent', 'ai model', 'algorithm' excluded) ===")
+    summary_specific = condition_table("identity_mention_specific")
+    print(summary_specific.to_string())
 
     print("\n=== Price-war language (per 1,000 sentences) ===")
     war_rows = []
@@ -195,10 +224,13 @@ def main():
         )
 
     summary_out = summary.reset_index()
+    summary_specific_out = summary_specific.reset_index()
     war_df = pd.DataFrame(war_rows)
     RESULTS_DIR.mkdir(exist_ok=True)
     summary_path = RESULTS_DIR / "manipulation_check.csv"
     summary_out.to_csv(summary_path, index=False)
+    summary_specific_path = RESULTS_DIR / "manipulation_check_identity_specific.csv"
+    summary_specific_out.to_csv(summary_specific_path, index=False)
     war_path = RESULTS_DIR / "price_war_language.csv"
     war_df.to_csv(war_path, index=False)
 
@@ -207,10 +239,9 @@ def main():
         for condition in ["C1", "C2", "C3"]:
             f.write(f"=== {condition}: 3 verbatim examples ===\n")
             # Prefer identity-specific patterns over the generic ones.
-            generic = {"ai agent", "ai model", "algorithm", "mirror", "like me"}
             pool = examples[condition]
-            specific = [e for e in pool if e["pattern"] not in generic]
-            generic_pool = [e for e in pool if e["pattern"] in generic]
+            specific = [e for e in pool if e["pattern"] not in GENERIC_PATTERNS]
+            generic_pool = [e for e in pool if e["pattern"] in GENERIC_PATTERNS]
             picked, seen = [], set()
             for e in specific + generic_pool:
                 key = e["sentence"]
@@ -227,9 +258,40 @@ def main():
                 )
             f.write("\n")
 
+    examples_specific_path = (
+        RESULTS_DIR / "manipulation_examples_identity_specific.txt"
+    )
+    with open(examples_specific_path, "w", encoding="utf-8") as f:
+        f.write(
+            "EXPLORATORY variant: identity-specific keyword list "
+            "(generic terms excluded)\n\n"
+        )
+        for condition in ["C0", "C1", "C2", "C3"]:
+            f.write(f"=== {condition}: 3 verbatim examples ===\n")
+            picked, seen = [], set()
+            for e in examples_specific[condition]:
+                key = e["sentence"]
+                if key in seen:
+                    continue
+                seen.add(key)
+                picked.append(e)
+                if len(picked) == 3:
+                    break
+            if not picked:
+                f.write("(no matching sentences)\n\n")
+                continue
+            for e in picked:
+                f.write(
+                    f"[{e['run']} round {e['round']} {e['agent']} "
+                    f"(pattern: {e['pattern']})]\n{e['sentence']}\n\n"
+                )
+            f.write("\n")
+
     print(f"\nSaved: {summary_path}")
+    print(f"Saved: {summary_specific_path}")
     print(f"Saved: {war_path}")
     print(f"Saved: {examples_path}")
+    print(f"Saved: {examples_specific_path}")
 
 
 if __name__ == "__main__":
