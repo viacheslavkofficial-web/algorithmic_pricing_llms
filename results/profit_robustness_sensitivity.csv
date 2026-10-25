@@ -1,0 +1,3 @@
+comparison,outcome,n_c1,n_c2,mean_c1,mean_c2,diff,ci95_lo,ci95_hi,welch_t,welch_p,welch_df,cohens_d,mwu_u,mwu_p
+"C1 vs C2 (price-based Delta, excl. Delta>2.5)",delta_price,10,7,0.644,0.981,-0.3369,-0.9728,0.299,-1.1812,0.265,9.97,-0.622,26.0,0.4173
+"C1 vs C2 (profit-based Delta_pi, same exclusion)",delta_pi,10,7,0.6286,0.6049,0.0237,-0.4515,0.4988,0.1107,0.914,10.21,0.058,33.0,0.8868

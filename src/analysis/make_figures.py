@@ -27,6 +27,7 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+from scipy import stats
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 RUNS_DIR = REPO_ROOT / "experiments_synthetic" / "experiments_runs" / "2_agents"
@@ -117,7 +118,10 @@ def fig_b(runs_df):
             edgecolors="none",
         )
         mean = deltas.mean()
-        ci = 1.96 * deltas.std(ddof=1) / np.sqrt(len(deltas))
+        # 95% CI across runs using the t distribution (n = 10 per condition)
+        ci = stats.t.ppf(0.975, len(deltas) - 1) * deltas.std(ddof=1) / np.sqrt(
+            len(deltas)
+        )
         ax.errorbar(
             i,
             mean,

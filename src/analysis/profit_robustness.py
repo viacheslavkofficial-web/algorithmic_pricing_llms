@@ -60,22 +60,37 @@ def cohens_d(a, b):
     return (a.mean() - b.mean()) / pooled
 
 
-def compare(df, c1, c2, column="delta_pi"):
+def welch_ci(a, b, alpha=0.05):
+    """Mean difference with a CI using the t distribution and
+    Welch-Satterthwaite degrees of freedom."""
+    diff = a.mean() - b.mean()
+    va = a.var(ddof=1) / len(a)
+    vb = b.var(ddof=1) / len(b)
+    se = (va + vb) ** 0.5
+    df = (va + vb) ** 2 / (va**2 / (len(a) - 1) + vb**2 / (len(b) - 1))
+    crit = stats.t.ppf(1 - alpha / 2, df)
+    return diff, se, df, diff - crit * se, diff + crit * se
+
+
+def compare(df, c1, c2, column="delta_pi", label=None):
     a = df[df.condition == c1][column]
     b = df[df.condition == c2][column]
     t, p = stats.ttest_ind(a, b, equal_var=False)
-    diff = a.mean() - b.mean()
-    se = (a.var(ddof=1) / len(a) + b.var(ddof=1) / len(b)) ** 0.5
+    diff, se, df, ci_lo, ci_hi = welch_ci(a, b)
     u, up = stats.mannwhitneyu(a, b, alternative="two-sided")
     return {
-        "comparison": f"{c1} vs {c2}",
+        "comparison": label or f"{c1} vs {c2}",
+        "outcome": column,
+        "n_c1": len(a),
+        "n_c2": len(b),
         "mean_c1": round(a.mean(), 4),
         "mean_c2": round(b.mean(), 4),
         "diff": round(diff, 4),
-        "ci95_lo": round(diff - 1.96 * se, 4),
-        "ci95_hi": round(diff + 1.96 * se, 4),
+        "ci95_lo": round(ci_lo, 4),
+        "ci95_hi": round(ci_hi, 4),
         "welch_t": round(t, 4),
         "welch_p": round(p, 4),
+        "welch_df": round(df, 2),
         "cohens_d": round(cohens_d(a, b), 4),
         "mwu_u": round(u, 1),
         "mwu_p": round(up, 4),
@@ -198,15 +213,26 @@ def main():
         f"(p={r.pvalue:.2e}), Spearman rho={rho.statistic:.4f} (p={rho.pvalue:.2e})"
     )
 
-    # Sensitivity: primary C1 vs C2 test excluding runs with Delta_price > 2.5
+    # Sensitivity: primary price-based comparison excluding Delta > 2.5 runs
     excluded = df[df["delta_price"] > 2.5][["condition", "run_dir", "delta_price"]]
     n_excluded = {c: int((excluded.condition == c).sum()) for c in CONDITIONS}
-    print("\n=== Sensitivity: C1 vs C2 excluding runs with Delta_price > 2.5 ===")
+    print("\n=== Sensitivity: excluding runs with Delta_price > 2.5 ===")
     print("Exclusion rule (stated): drop any run with price-based Delta > 2.5 "
           "in rounds 101-150, from either comparison group.")
     print(f"Excluded runs: {n_excluded}")
-    sens = pd.DataFrame([compare(df[df["delta_price"] <= 2.5], "C1", "C2")])
+    sens_df = df[df["delta_price"] <= 2.5]
+    sens_a = compare(
+        sens_df, "C1", "C2", column="delta_price",
+        label="C1 vs C2 (price-based Delta, excl. Delta>2.5)",
+    )
+    sens_b = compare(
+        sens_df, "C1", "C2", column="delta_pi",
+        label="C1 vs C2 (profit-based Delta_pi, same exclusion)",
+    )
+    sens = pd.DataFrame([sens_a, sens_b])
     print(sens.to_string(index=False))
+    sens_path = RESULTS_DIR / "profit_robustness_sensitivity.csv"
+    sens.to_csv(sens_path, index=False)
 
     # Figure C: Delta vs realised per-firm profit
     fig, ax = plt.subplots(figsize=(5.8, 4.0))
@@ -241,6 +267,7 @@ def main():
     print(f"\nSaved: {runs_path}")
     print(f"Saved: {summary_path}")
     print(f"Saved: {comp_path}")
+    print(f"Saved: {sens_path}")
     print(f"Saved: {FIG_DIR / 'fig_c_delta_vs_profit.png'} and .pdf")
 
 
